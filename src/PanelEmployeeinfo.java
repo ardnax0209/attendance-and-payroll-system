@@ -46,7 +46,6 @@ public class PanelEmployeeinfo extends JPanel {
 	private JTextField txtEmail;
 	private JTextField txtCivilStatus;
 	private JTextField dateOfBirth;
-	private JTextField txtDateHire;
 	private JTextField txtSearchEID;
 	
 	Connection conn;
@@ -390,38 +389,6 @@ public class PanelEmployeeinfo extends JPanel {
 		dateOfBirth.setColumns(10);
 		dateOfBirth.setBorder(null);
 		panelNationality.add(dateOfBirth);
-		
-		JPanel panelDateHired = new JPanel();
-		panelDateHired.setBounds(480, 206, 200, 25);
-		panelDateHired.setBackground(new Color(255, 255, 255));
-		panelDateHired.setBorder(new LineBorder(new Color(0, 0, 0)));
-		add(panelDateHired);
-		panelDateHired.setLayout(null);
-		
-		txtDateHire = new JTextField();
-		txtDateHire.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				if (txtDateHire.getText().equals("Date Hire")) {
-					txtDateHire.setText("");
-				}
-				else {
-					txtDateHire.selectAll();
-				}
-			}
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (txtDateHire.getText().equals("")) {
-					txtDateHire.setText("Date Hire");
-				}
-			}
-		});
-		txtDateHire.setBounds(10, 6, 180, 14);
-		txtDateHire.setText("Date Hire");
-		txtDateHire.setFont(new Font("Tahoma", Font.BOLD, 11));
-		txtDateHire.setColumns(10);
-		txtDateHire.setBorder(null);
-		panelDateHired.add(txtDateHire);
 		
 		JPanel panelEmployeeNumber = new JPanel();
 		panelEmployeeNumber.setBounds(396, 83, 284, 25);
