@@ -21,9 +21,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.awt.event.ActionListener;
@@ -51,13 +49,6 @@ public class PanelDailylogs extends JPanel {
 	 * Create the panel.
 	 */
 	public PanelDailylogs() {
-		try {
-			//initiate connection with database
-			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
 		setBackground(new Color(255, 182, 193));
 		setBounds(0, 0, 700,524);
 		setLayout(null);
@@ -101,6 +92,13 @@ public class PanelDailylogs extends JPanel {
 		btnTimein.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
 				String employeeData=txtEmployeeNumber.getText();
 				
 				int countOfTimeIn = 0;
@@ -147,6 +145,12 @@ public class PanelDailylogs extends JPanel {
 							statement.execute(query);
 						} catch (SQLException e2) {
 							JOptionPane.showMessageDialog(null, e2.toString());
+						} finally {
+						    if (conn != null) {
+						        try {
+						            conn.close();
+						        } catch (SQLException e1) { /* ignored */}
+						    }
 						}
 						
 						table_load();
@@ -166,7 +170,14 @@ public class PanelDailylogs extends JPanel {
 		JButton btnTimeout = new JButton("TIME OUT");
 		btnTimeout.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
 				String employeeData=txtEmployeeNumber.getText();
 				
 				int countOfTimeIn = 0;
@@ -254,6 +265,17 @@ public class PanelDailylogs extends JPanel {
 							statement.execute(query);
 						} catch (SQLException e2) {
 							JOptionPane.showMessageDialog(null, e2.toString());
+						} finally {
+							if (rs != null) {
+						        try {
+						        	rs.close();
+						        } catch (SQLException e1) { /* ignored */}
+						    }
+						    if (conn != null) {
+						        try {
+						            conn.close();
+						        } catch (SQLException e1) { /* ignored */}
+						    }
 						}
 						
 						table_load();
@@ -294,16 +316,10 @@ public class PanelDailylogs extends JPanel {
 			public void run() {
 				try {
 					for (;;) {
-						Calendar cal = new GregorianCalendar();
-						int day = cal.get(Calendar.DAY_OF_MONTH);
-						int month = cal.get(Calendar.MONTH);
-						int year = cal.get(Calendar.YEAR);
+						DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");  
+						LocalDateTime now = LocalDateTime.now();
 						
-						int second = cal.get(Calendar.SECOND);
-						int minute = cal.get(Calendar.MINUTE);
-						int hour = cal.get(Calendar.HOUR);
-						
-						lblClock.setText(year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + second);
+						lblClock.setText(dtf.format(now));
 						
 						sleep(1000);
 					}
@@ -318,16 +334,33 @@ public class PanelDailylogs extends JPanel {
 
 	public void table_load()
 	{
+		try {
+			//initiate connection with database
+			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		//populates table
 		try {
 			pst = conn.prepareStatement("SELECT employeeNum, timeIn, timeOut FROM payrollInfo WHERE dateIn = '"+dateToday+"'");
-			//pst = conn.prepareStatement("SELECT employeeNum, timeIn, timeOut, LASTNAME, FIRSTNAME FROM payrollInfo INNER JOIN employeeInfo on employeeInfo.EMPLOYEENUM = payrollInfo.employeeNum WHERE dateIn = '"+dateToday+"'");
 			rs = pst.executeQuery();
 			table.setModel (DbUtils.resultSetToTableModel(rs));
 		}
 		catch (SQLException e)
 		{
-			e.addSuppressed(e);
+			e.printStackTrace();
+		} finally {
+			if (rs != null) {
+		        try {
+		        	rs.close();
+		        } catch (SQLException e1) { /* ignored */}
+		    }
+		    if (conn != null) {
+		        try {
+		            conn.close();
+		        } catch (SQLException e1) { /* ignored */}
+		    }
 		}
 	}
 }

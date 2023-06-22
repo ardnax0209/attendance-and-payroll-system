@@ -58,14 +58,6 @@ public class PanelEmployeeinfo extends JPanel {
 	 * Create the panel.
 	 */
 	public PanelEmployeeinfo() {
-		
-		try {
-			//initiate connection with database
-			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
 		setBackground(new Color(255, 182, 193));
 		setBounds(0, 0, 700,524);
 		setLayout(null);
@@ -424,10 +416,17 @@ public class PanelEmployeeinfo extends JPanel {
 		panelEmployeeNumber.add(txtEmployeeNumber);
 		txtEmployeeNumber.setColumns(10);
 		
-		JButton btnAdd = new JButton("ADD");
+		JButton btnAdd = new JButton("Add");
 		btnAdd.setBounds(79, 242, 89, 23);
 		btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
 				String lastName = txtLastName.getText();
 				String firstName = txtFirstName.getText();
 				String middleName = txtMiddleName.getText();
@@ -452,8 +451,27 @@ public class PanelEmployeeinfo extends JPanel {
 					JOptionPane.showMessageDialog(null, "Employee created!");
 				} catch (SQLException e2) {
 					JOptionPane.showMessageDialog(null, e2.toString());
+				} finally {
+				    if (conn != null) {
+				        try {
+				            conn.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
 				}
 				
+				//Revert fields into default
+				txtLastName.setText("Last Name");
+				txtFirstName.setText("First Name");
+				txtMiddleName.setText("Middle Name");
+				txtAddress.setText("Address");
+				txtContactNumber.setText("Contact Number");
+				txtAge.setText("Age");
+				txtGender.setText("Gender");
+				txtEmail.setText("Email");
+				txtCivilStatus.setText("Civil Status");
+				dateOfBirth.setText("Birthday");
+				
+				//Reload table with new data
 				table_load();
 			}
 		});
@@ -464,9 +482,14 @@ public class PanelEmployeeinfo extends JPanel {
 		JButton btnUpdate = new JButton("Update");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
 				
-				
-					int row1 = employeeTable.getSelectedRow();
+				int row1 = employeeTable.getSelectedRow();
 				
 				String employeeNum= employeeTable.getValueAt(row1,0).toString();
 				String lastName = employeeTable.getValueAt(row1,1).toString();
@@ -491,6 +514,17 @@ public class PanelEmployeeinfo extends JPanel {
 					JOptionPane.showMessageDialog(null, "Employee Updated!");
 				} catch (SQLException e3) {
 					JOptionPane.showMessageDialog(null, e3.toString());
+				} finally {
+					if (rs != null) {
+				        try {
+				        	rs.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
+				    if (conn != null) {
+				        try {
+				            conn.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
 				}
 				
 				table_load();
@@ -505,7 +539,14 @@ public class PanelEmployeeinfo extends JPanel {
 		JButton btnDelete = new JButton("Delete");
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-	int row1 = employeeTable.getSelectedRow();
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
+				int row1 = employeeTable.getSelectedRow();
 				
 				String employeeNum= employeeTable.getValueAt(row1,0).toString();
 
@@ -521,11 +562,20 @@ public class PanelEmployeeinfo extends JPanel {
 					JOptionPane.showMessageDialog(null, "Employee Deleted!");
 				} catch (SQLException e3) {
 					JOptionPane.showMessageDialog(null, e3.toString());
+				} finally {
+					if (rs != null) {
+				        try {
+				        	rs.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
+				    if (conn != null) {
+				        try {
+				            conn.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
 				}
 				
 				table_load();
-			
-				
 			}
 
 			
@@ -561,6 +611,13 @@ public class PanelEmployeeinfo extends JPanel {
 		txtSearchEID.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
 				String searchField = "%" + txtSearchEID.getText() + "%";
 				
 				//populates table
@@ -572,6 +629,17 @@ public class PanelEmployeeinfo extends JPanel {
 				catch (SQLException e2)
 				{
 					e2.addSuppressed(e2);
+				} finally {
+					if (rs != null) {
+				        try {
+				        	rs.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
+				    if (conn != null) {
+				        try {
+				            conn.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
 				}
 			}
 			
@@ -592,6 +660,13 @@ public class PanelEmployeeinfo extends JPanel {
 	
 	public void table_load()
 	{
+		try {
+			//initiate connection with database
+			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		//populates table
 		try {
 			pst = conn.prepareStatement("select * from employeeInfo WHERE status = 'ACTIVE'");
@@ -626,6 +701,17 @@ public class PanelEmployeeinfo extends JPanel {
 		catch (SQLException e)
 		{
 			e.addSuppressed(e);
+		} finally {
+			if (rs != null) {
+		        try {
+		        	rs.close();
+		        } catch (SQLException e1) { /* ignored */}
+		    }
+		    if (conn != null) {
+		        try {
+		            conn.close();
+		        } catch (SQLException e1) { /* ignored */}
+		    }
 		}
 	}
 }

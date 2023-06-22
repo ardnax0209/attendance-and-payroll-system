@@ -247,6 +247,11 @@ public class Dashboard extends JFrame {
 		paneMainContent.add(panelSettings);
 		paneMainContent.add(panelSignout);
 		
+		panelDailylogs.setVisible(false);
+		panelEmployeeinfo.setVisible(false);
+		panelPayroll.setVisible(false);
+		panelSettings.setVisible(false);
+		panelSignout.setVisible(false);
 	}
 		
 		public void  menuClicked(JPanel panel	) {

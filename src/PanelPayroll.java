@@ -6,6 +6,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -62,13 +66,6 @@ public class PanelPayroll extends JPanel {
 	 * Create the panel.
 	 */
 	public PanelPayroll() {
-		try {
-			//initiate connection with database
-			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
 		setBackground(new Color(255, 182, 193));
 		setBounds(0, 0, 700,524);
 		setLayout(null);
@@ -173,8 +170,15 @@ public class PanelPayroll extends JPanel {
 		
 		btnNewButton.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				String employeeNum=txtEmployeeNumber.getText();
+			public void mouseReleased(MouseEvent e) {
+				try {
+					//initiate connection with database
+					conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+				
+				String employeeNum = txtEmployeeNumber.getText();
 				
 				int countOfUser = 0;
 				
@@ -236,9 +240,10 @@ public class PanelPayroll extends JPanel {
 					//Get hours for specified time period
 					int dateSize = dates.size();
 					String getDate = "";
-					double numHours = 0;
+					double numHours = 0.00;
+					double getHrs = 0.00;
 					double otHrs = 0;
-					double deductHrs = 0;
+					double deductHrs = 0.00;
 					for (int i = 0; dateSize > i; i++) {
 						getDate = (String) dates.get(i).get(1);
 						String strGetDate[] = getDate.split("-");
@@ -260,15 +265,15 @@ public class PanelPayroll extends JPanel {
 								if (dayStr <= 15) {
 									//Get total hours using primary key
 									try {
-										pst = conn.prepareStatement("SELECT totalHours, timeIn, timeOut FROM payrollInfo WHERE ID = '"+primKey+"'");
+										pst = conn.prepareStatement("SELECT timeIn, timeOut FROM payrollInfo WHERE ID = '"+primKey+"'");
 										rs = pst.executeQuery();
-
+										
 										while (rs.next()) {
-											Double getHrs = Double.parseDouble(rs.getString("totalHours"));
 											String employeeIn = rs.getString("timeIn");
 											String employeeOut = rs.getString("timeOut");
+											getHrs = Double.parseDouble(rs.getString("totalHours"));
+											boolean undertimeChckr = false;
 											
-											//Format time in
 											try {
 												timeInFormatted = timeForm.parse(employeeIn);
 												timeOutFormatted = timeForm.parse(employeeOut);
@@ -279,51 +284,38 @@ public class PanelPayroll extends JPanel {
 												e1.printStackTrace();
 											}
 											
-											if (getHrs >= 9.00) {
-												if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
-													getHrs = (double) (timeOutFormatted.getTime() - correctTimeIn.getTime());
-													if (getHrs - 9 > 0) {
-														otHrs = otHrs + (getHrs - 9);
-													}
-
+											if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
+												//not late
+												getHrs = 8.00;
+											} else if (correctTimeIn.getTime() - timeInFormatted.getTime() < 0) {
+												//late
+												double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
+												if (howLate < 3600000) {
+													deductHrs = deductHrs + 40.00;
 													getHrs = 8.00;
-												} else {
-													double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
-													if (howLate < 1) {
-														deductHrs = deductHrs + 40;
-													} else if (howLate <= 4 && howLate > 1) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
-													}
-													
+												} else if (howLate <= 14400000 && howLate >= 3600000) {
+													deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
 													getHrs = 8.00;
-													
-													//overtime value
-													otHrs = otHrs + (timeOutFormatted.getTime() - correctTimeOut.getTime());
+												} else if (howLate >= 14400000 && getHrs <= 4.5) {
+													getHrs = getHrs;
+													System.out.println("Undertime, so will take from how many hours until 5 pm.");
+													undertimeChckr = true;
 												}
-											} else {
-												//check if undertime or late
-												if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
-													//undertime
-													double actualHrs = timeOutFormatted.getTime() - correctTimeIn.getTime();
-													if (actualHrs < 8) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) * (8 - actualHrs));
-													}
-													getHrs = 8.00;
-												} else {
-													//late
-													double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
-													if (howLate < 1) {
-														deductHrs = deductHrs + 40;
-													} else if (howLate <= 4 && howLate > 1) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
-													}
-													
-													getHrs = 8.00;
-												}
+											}
+											
+											if (timeOutFormatted.getTime() - correctTimeOut.getTime() > 0) {
+												otHrs = otHrs + ((((timeOutFormatted.getTime() - correctTimeOut.getTime()) / (1000*60*60)) % 24));
+											}
+											
+											if (timeOutFormatted.getTime() - correctTimeOut.getTime() < 0 && undertimeChckr == false) {
+												long hrsVal = timeOutFormatted.getTime() - correctTimeOut.getTime();
+												double convertedUnder = (( Math.abs(hrsVal) / (1000*60*60)) % 24);
+												deductHrs = deductHrs + (convertedUnder * (Double.parseDouble(basicPay)/8));
 											}
 											
 											numHours = numHours + getHrs;
 											
+											/*
 											//Populate array of objects for table
 											ArrayList<Object> newObj = new ArrayList<Object>(Arrays.asList(data));
 										    newObj.add(getDate);
@@ -333,9 +325,21 @@ public class PanelPayroll extends JPanel {
 										    data[x][0] = newObj;
 										    x++;
 										    JOptionPane.showMessageDialog(null, "TEST2");
+										    */
 										}
 									} catch (SQLException e1) {
 										e1.printStackTrace();
+									} finally {
+										if (rs != null) {
+									        try {
+									        	rs.close();
+									        } catch (SQLException e1) { /* ignored */}
+									    }
+									    if (conn != null) {
+									        try {
+									            conn.close();
+									        } catch (SQLException e1) { /* ignored */}
+									    }
 									}
 								}
 							} else {
@@ -343,11 +347,12 @@ public class PanelPayroll extends JPanel {
 									try {
 										pst = conn.prepareStatement("SELECT totalHours, timeIn, timeOut FROM payrollInfo WHERE ID = '"+primKey+"'");
 										rs = pst.executeQuery();
-
+										
 										while (rs.next()) {
-											Double getHrs = Double.parseDouble(rs.getString("totalHours"));
 											String employeeIn = rs.getString("timeIn");
 											String employeeOut = rs.getString("timeOut");
+											getHrs = Double.parseDouble(rs.getString("totalHours"));
+											boolean undertimeChckr = false;
 											
 											try {
 												timeInFormatted = timeForm.parse(employeeIn);
@@ -359,51 +364,38 @@ public class PanelPayroll extends JPanel {
 												e1.printStackTrace();
 											}
 											
-											if (getHrs >= 9.00) {
-												if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
-													getHrs = (double) (timeOutFormatted.getTime() - correctTimeIn.getTime());
-													if (getHrs - 9 > 0) {
-														otHrs = otHrs + (getHrs - 9);
-													}
-
+											if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
+												//not late
+												getHrs = 8.00;
+											} else if (correctTimeIn.getTime() - timeInFormatted.getTime() < 0) {
+												//late
+												double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
+												if (howLate < 3600000) {
+													deductHrs = deductHrs + 40.00;
 													getHrs = 8.00;
-												} else {
-													double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
-													if (howLate < 1) {
-														deductHrs = deductHrs + 40;
-													} else if (howLate <= 4 && howLate > 1) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
-													}
-													
+												} else if (howLate <= 14400000 && howLate >= 3600000) {
+													deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
 													getHrs = 8.00;
-													
-													//overtime value
-													otHrs = otHrs + (timeOutFormatted.getTime() - correctTimeOut.getTime());
+												} else if (howLate >= 14400000 && getHrs <= 4.5) {
+													getHrs = getHrs;
+													System.out.println("Undertime, so will take from how many hours until 5 pm.");
+													undertimeChckr = true;
 												}
-											} else {
-												//check if undertime or late
-												if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
-													//undertime
-													double actualHrs = timeOutFormatted.getTime() - correctTimeIn.getTime();
-													if (actualHrs < 8) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) * (8 - actualHrs));
-													}
-													getHrs = 8.00;
-												} else {
-													//late
-													double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
-													if (howLate < 1) {
-														deductHrs = deductHrs + 40;
-													} else if (howLate <= 4 && howLate > 1) {
-														deductHrs = deductHrs + (Double.parseDouble(basicPay) / 2);
-													}
-													
-													getHrs = 8.00;
-												}
+											}
+											
+											if (timeOutFormatted.getTime() - correctTimeOut.getTime() > 0) {
+												otHrs = otHrs + ((((timeOutFormatted.getTime() - correctTimeOut.getTime()) / (1000*60*60)) % 24));
+											}
+											
+											if (timeOutFormatted.getTime() - correctTimeOut.getTime() < 0 && undertimeChckr == false) {
+												long hrsVal = timeOutFormatted.getTime() - correctTimeOut.getTime();
+												double convertedUnder = (( Math.abs(hrsVal) / (1000*60*60)) % 24);
+												deductHrs = deductHrs + (convertedUnder * (Double.parseDouble(basicPay)/8));
 											}
 											
 											numHours = numHours + getHrs;
 											
+											/*
 											//Populate array of objects for table
 											ArrayList<Object> newObj = new ArrayList<Object>(Arrays.asList(data));
 										    newObj.add(getDate);
@@ -412,13 +404,25 @@ public class PanelPayroll extends JPanel {
 										    newObj.add(rs.getString("totalHours"));
 										    data[x][0] = newObj;
 										    x++;
+										    */
 										}
 									} catch (SQLException e1) {
 										e1.printStackTrace();
+									} finally {
+										if (rs != null) {
+									        try {
+									        	rs.close();
+									        } catch (SQLException e1) { /* ignored */}
+									    }
+									    if (conn != null) {
+									        try {
+									            conn.close();
+									        } catch (SQLException e1) { /* ignored */}
+									    }
 									}
 								}
 							}
-						}  
+						}
 					}
 					
 					double perHour = Double.parseDouble(basicPay)/8;
@@ -432,10 +436,15 @@ public class PanelPayroll extends JPanel {
 					BigDecimal bdPagibig = new BigDecimal(salary * 0.06).setScale(2, RoundingMode.HALF_UP);
 					double numPagibig = bdPagibig.doubleValue();
 					
+					BigDecimal bdSss = new BigDecimal(salary * 0.045).setScale(2, RoundingMode.HALF_UP);
+					double numSss = bdSss.doubleValue();
+					
 					BigDecimal bdGross = new BigDecimal(salary).setScale(2, RoundingMode.HALF_UP);
 					double numGross = bdGross.doubleValue();
 					
 					totalPay.setText(Double.toString(numGross));
+					textField_2.setText(Double.toString(numSss));
+					textField_3.setText(Double.toString(numSss)); //philhealth
 					textField_4.setText(Double.toString(numPagibig));
 					
 					double otCharge = otHrs * perHour;
@@ -443,6 +452,7 @@ public class PanelPayroll extends JPanel {
 					double finalOT = bdOT.doubleValue();
 					textOvertime.setText(Double.toString(finalOT));
 					
+					textField_6.setText(Double.toString(deductHrs));
 				} else {
 					JOptionPane.showMessageDialog(null, "Employee number is invalid!");
 				}
@@ -450,18 +460,19 @@ public class PanelPayroll extends JPanel {
 		});
 		
 		textField_2 = new JTextField();
-		textField_2.setText("570.00");
+		textField_2.setText("0.00");
 		textField_2.setColumns(10);
 		textField_2.setBounds(143, 218, 155, 15);
 		add(textField_2);
 		
 		textField_3 = new JTextField();
-		textField_3.setText("450.00");
+		textField_3.setText("0.00");
 		textField_3.setColumns(10);
 		textField_3.setBounds(143, 233, 155, 15);
 		add(textField_3);
 		
 		textField_4 = new JTextField();
+		textField_4.setText("0.00");
 		textField_4.setColumns(10);
 		textField_4.setBounds(143, 248, 155, 15);
 		add(textField_4);
@@ -487,76 +498,101 @@ public class PanelPayroll extends JPanel {
 		JButton btnNewButton_1 = new JButton("PRINT");
 		btnNewButton_1.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 				//created PDF document instance   
 				Document doc = new Document();
 				try  
 				{  
-					//generate a PDF at the specified location
-					PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream("C:\\Users\\ardna\\OneDrive\\Documents\\Payslip.pdf")); //update payslip/user-payslip.pdf
-					System.out.println("PDF created.");  
-					//opens the PDF  
-					doc.open();
-					
-					//Create Font objects
-			        /*Font headerFont = new Font(Font.MONOSPACED, 20,
-			                      Font.ITALIC | Font.BOLD); */
-					
-					Paragraph preface = new Paragraph("Sweet Dyeiz and Cupcakes"); //update
-					//preface.setFont(headerFont);
-					preface.setAlignment(Element.ALIGN_CENTER);
-					preface.setSpacingAfter(50);
-					
-					Paragraph employeeNum = new Paragraph("Employee Number: ");
-					Paragraph employeeName = new Paragraph("Name: ");
-					Paragraph employeeDate = new Paragraph("Date Generated: ");
-					employeeDate.setSpacingAfter(50);
+					String currentDir = "./";
 
-					//adds paragraph to the PDF file
-					doc.add(preface);
-					doc.add(employeeNum);
-					doc.add(employeeName);
-					doc.add(employeeDate);
-			        
-					PdfPTable table = new PdfPTable(2);
-					PdfPCell c1 = new PdfPCell(new Phrase(" "));
-			        c1.setHorizontalAlignment(Element.ALIGN_CENTER);
-
-			        table.addCell("BASIC PAY");
-			        table.addCell("1.1");
-			        table.addCell(c1);
-			        table.addCell(" ");
-			        table.addCell("SSS");
-			        table.addCell("2.1");
-			        table.addCell("PHILHEALTH");
-			        table.addCell("2.3");
-			        table.addCell("PAG-IBIG");
-			        table.addCell("2.3");
-			        table.addCell(c1);
-			        table.addCell(" ");
-			        table.addCell("TAX");
-			        table.addCell("2.3");
-			        table.addCell(c1);
-			        table.addCell(" ");
-			        table.addCell("DEDUCTIONS");
-			        table.addCell("2.3");
-			        table.addCell("OVERTIME");
-			        table.addCell("2.3");
-			        table.addCell(c1);
-			        table.addCell(" ");
-			        table.addCell("GROSS");
-			        table.addCell("2.3");
-			        table.addCell("NET");
-			        table.addCell("2.3");
-
-			        doc.add(table);
+			        String folderName = "Payslip";
+			        Path path = Paths.get(currentDir + folderName);
 					
-					//close the PDF file  
-					doc.close();  
-					//closes the writer  
-					writer.close();
-					
-					JOptionPane.showMessageDialog(null, "Payslip generated.");
+					if (Files.exists(path)) {
+			            if (Files.isDirectory(path)) {
+			                System.out.println("It is a directory");
+			            }
+			        } else {
+			            System.out.println("File not found.");
+			            
+			            //Instantiate the File class   
+						File f1 = new File(folderName);  
+						
+						//Creating a folder using mkdir() method  
+						boolean bool = f1.mkdir();  
+						if(bool){  
+							System.out.println("Folder is created successfully"); 
+
+							//generate a PDF at the specified location
+							PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream("Payslip\\Payslip.pdf")); //update name of pdf
+
+							//opens the PDF  
+							doc.open();
+							
+							//Create Font objects
+					        /*Font headerFont = new Font(Font.MONOSPACED, 20,
+					                      Font.ITALIC | Font.BOLD); */
+							
+							Paragraph preface = new Paragraph("Sweet Dyeiz and Cupcakes"); //update
+							//preface.setFont(headerFont);
+							preface.setAlignment(Element.ALIGN_CENTER);
+							preface.setSpacingAfter(50);
+							
+							Paragraph employeeNum = new Paragraph("Employee Number: " + txtEmployeeNumber.getText());
+							Paragraph employeeName = new Paragraph("Name: ");
+							Paragraph employeeDate = new Paragraph("Date Generated: ");
+							employeeDate.setSpacingAfter(50);
+
+							//adds paragraph to the PDF file
+							doc.add(preface);
+							doc.add(employeeNum);
+							doc.add(employeeName);
+							doc.add(employeeDate);
+					        
+							PdfPTable table = new PdfPTable(2);
+							PdfPCell c1 = new PdfPCell(new Phrase(" "));
+					        c1.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+					        table.addCell("BASIC PAY");
+					        table.addCell(textField_1.getText());
+					        table.addCell(c1);
+					        table.addCell(" ");
+					        table.addCell("SSS");
+					        table.addCell(textField_2.getText());
+					        table.addCell("PHILHEALTH");
+					        table.addCell(textField_3.getText());
+					        table.addCell("PAG-IBIG");
+					        table.addCell(textField_4.getText());
+					        table.addCell(c1);
+					        table.addCell(" ");
+					        table.addCell("TAX");
+					        table.addCell(textField_5.getText());
+					        table.addCell(c1);
+					        table.addCell(" ");
+					        table.addCell("DEDUCTIONS");
+					        table.addCell(textField_6.getText());
+					        table.addCell("OVERTIME");
+					        table.addCell(textOvertime.getText());
+					        table.addCell(c1);
+					        table.addCell(" ");
+					        table.addCell("GROSS");
+					        table.addCell(totalPay.getText());
+					        table.addCell("NET");
+					        table.addCell(textField_8.getText());
+
+					        doc.add(table);
+							
+							//close the PDF file  
+							doc.close();  
+							//closes the writer  
+							writer.close();
+							
+							JOptionPane.showMessageDialog(null, "Payslip generated.");
+						}else{  
+							//System.out.println("Error Found!");
+							JOptionPane.showMessageDialog(null, "Error Found!");
+						}  
+			        }
 				}   
 				catch (DocumentException e1)  
 				{  
@@ -577,9 +613,19 @@ public class PanelPayroll extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				double grossPay = Double.parseDouble(totalPay.getText());
+				double overtime = Double.parseDouble(textOvertime.getText());
+				double sss = Double.parseDouble(textField_2.getText());
+				double philhealth = Double.parseDouble(textField_3.getText());
+				double pagibig = Double.parseDouble(textField_4.getText());
+				double tax = Double.parseDouble(textField_5.getText());
+				double deductions = Double.parseDouble(textField_6.getText());
 				
-				double netPay = (grossPay + Double.parseDouble(textOvertime.getText())) - (Double.parseDouble(textField_5.getText()) + Double.parseDouble(textField_4.getText()) + Double.parseDouble(textField_3.getText()) + Double.parseDouble(textField_2.getText()));
-				textField_8.setText(String.valueOf(netPay));
+				double netPay = (grossPay + overtime) - (deductions + tax + pagibig + philhealth + sss);
+				//textField_8.setText(String.valueOf(netPay));
+				
+				BigDecimal netPayConverted = new BigDecimal(netPay).setScale(2, RoundingMode.HALF_UP);
+				textField_8.setText(String.valueOf(netPayConverted.doubleValue()));
+				 
 			}
 		});
 		btnApply.setFont(new Font("Tahoma", Font.BOLD, 11));

@@ -116,15 +116,15 @@ public class Login extends JFrame {
 			}
 			
 			//create payroll table
-			query ="CREATE TABLE \"payrollInfo\" (\r\n"
+			query ="CREATE TABLE IF NOT EXISTS \"payrollInfo\" (\r\n"
 					+ "	\"employeeNum\"	TEXT NOT NULL,\r\n"
 					+ "	\"dateIn\"	TEXT,\r\n"
 					+ "	\"timeIn\"	TEXT,\r\n"
 					+ "	\"dateOut\"	TEXT,\r\n"
 					+ "	\"timeOut\"	TEXT,\r\n"
 					+ "	\"totalHours\"	REAL,\r\n"
-					+ "	\"ID\"	INTEGER\r\n"
-					+ " PRIMARY KEY(\"ID\")"
+					+ "	\"ID\"	INTEGER,\r\n"
+					+ "	PRIMARY KEY(\"ID\")\r\n"
 					+ ");";
 			
 			try
@@ -262,7 +262,8 @@ public class Login extends JFrame {
 		JPanel pnlBttnLOGIN = new JPanel();
 		pnlBttnLOGIN.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
+				pnlBttnLOGIN.setBackground(new Color(200, 130, 200));
 				
 					String user = txtUserfield.getText();
 					String pass = String.valueOf(txtPasswordfield.getPassword());
@@ -293,7 +294,7 @@ public class Login extends JFrame {
 						e1.printStackTrace();
 						JOptionPane.showMessageDialog(null,e1);
 					} finally {
-						if (proceedFlag = true) {
+						if (proceedFlag == true) {
 							if (resultSet != null) {
 						        try {
 						        	resultSet.close();
@@ -321,10 +322,6 @@ public class Login extends JFrame {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				pnlBttnLOGIN.setBackground(new Color(231, 170, 231));
-			}
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				pnlBttnLOGIN.setBackground(new Color(200, 130, 200));
 			}
 		});
 		pnlBttnLOGIN.setBounds(381, 287, 232, 46);
