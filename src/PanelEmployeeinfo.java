@@ -15,7 +15,6 @@ import javax.swing.JButton;
 import javax.swing.SwingConstants;
 import java.awt.event.ActionListener;
 import java.sql.*;
-import java.util.Date;
 //import java.sql.Connection;
 //import java.sql.DriverManager;
 //import java.sql.SQLException;
@@ -25,11 +24,6 @@ import java.awt.event.FocusEvent;
 import javax.swing.JTable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import com.toedter.calendar.JDateChooser;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
 
 public class PanelEmployeeinfo extends JPanel {
 	
@@ -439,6 +433,10 @@ public class PanelEmployeeinfo extends JPanel {
 				String empBirthday = dateOfBirth.getText();
 				String employeeNum=txtEmployeeNumber.getText();
 				
+				if (middleName == "Middle Name") {
+					middleName = "";
+				}
+				
 				//Initialize SQL statement
 				Statement statement = null;
 				//Create SQL statement
@@ -669,7 +667,7 @@ public class PanelEmployeeinfo extends JPanel {
 		
 		//populates table
 		try {
-			pst = conn.prepareStatement("select * from employeeInfo WHERE status = 'ACTIVE'");
+			pst = conn.prepareStatement("select EMPLOYEENUM, LASTNAME, FIRSTNAME, MIDDLENAME, ADDRESS, CONTACTNUM, AGE, GENDER, EMAIL, CIVILSTATUS, BIRTHDAY, DATEHIRED, DAILYSALARY from employeeInfo WHERE status = 'ACTIVE'");
 			rs = pst.executeQuery();
 			employeeTable.setModel (DbUtils.resultSetToTableModel(rs));
 		}

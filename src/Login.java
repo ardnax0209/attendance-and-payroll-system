@@ -9,7 +9,6 @@ import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.ImageIcon;
-import javax.swing.SwingConstants;
 import javax.swing.JPasswordField;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
@@ -20,9 +19,7 @@ import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.sql.*;
-import org.sqlite.SQLiteDataSource;
 import javax.swing.border.LineBorder;
-import java.awt.Rectangle;
 
 public class Login extends JFrame {
 	

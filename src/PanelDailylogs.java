@@ -5,6 +5,7 @@ import javax.swing.JOptionPane;
 import java.awt.Font;
 import java.awt.Color;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 import net.proteanit.sql.DbUtils;
 
@@ -40,6 +41,8 @@ public class PanelDailylogs extends JPanel {
 	Connection conn;
 	PreparedStatement pst;
 	ResultSet rs;
+	
+	DefaultTableModel tableModel = new DefaultTableModel();
 	
 	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	LocalDateTime now = LocalDateTime.now(); 
@@ -295,7 +298,13 @@ public class PanelDailylogs extends JPanel {
 		scrollPane.setBounds(39, 220, 619, 247);
 		add(scrollPane);
 		
-		table = new JTable();
+		tableModel.addColumn("Employee Number");
+		tableModel.addColumn("First Name");
+		tableModel.addColumn("Last Name");
+		tableModel.addColumn("Time in");
+		tableModel.addColumn("Time out");
+		
+		table = new JTable(tableModel);
 		scrollPane.setViewportView(table);
 		
 		JLabel lblNewLabel = new JLabel("ATTENDANCE FOR TODAY");
@@ -334,6 +343,9 @@ public class PanelDailylogs extends JPanel {
 
 	public void table_load()
 	{
+		tableModel.setRowCount(0);
+		int i = 0;
+		
 		try {
 			//initiate connection with database
 			conn = DriverManager.getConnection("jdbc:sqlite:sjDatabase.db");
@@ -343,9 +355,28 @@ public class PanelDailylogs extends JPanel {
 		
 		//populates table
 		try {
+			/*
 			pst = conn.prepareStatement("SELECT employeeNum, timeIn, timeOut FROM payrollInfo WHERE dateIn = '"+dateToday+"'");
 			rs = pst.executeQuery();
 			table.setModel (DbUtils.resultSetToTableModel(rs));
+			*/
+			
+			pst = conn.prepareStatement("SELECT employeeNum, timeIn, timeOut FROM payrollInfo WHERE dateIn = '"+dateToday+"'");
+			rs = pst.executeQuery();
+
+			while (rs.next()) {
+				String empNum = rs.getString("employeeNum");
+				
+				PreparedStatement pstName = conn.prepareStatement("SELECT LASTNAME, FIRSTNAME FROM employeeInfo WHERE EMPLOYEENUM = '"+empNum+"'");
+				ResultSet rsName = pstName.executeQuery();
+				
+				while (rsName.next()) {
+					tableModel.insertRow(i, new Object[] { empNum, rsName.getString("FIRSTNAME"), rsName.getString("LASTNAME"), rs.getString("timeIn"), rs.getString("timeOut")});
+				}
+				
+				i++;
+			}
+			tableModel.fireTableDataChanged();
 		}
 		catch (SQLException e)
 		{

@@ -12,7 +12,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 import java.awt.Font;
 import javax.swing.border.LineBorder;
-import javax.swing.border.EmptyBorder;
 
 public class Dashboard extends JFrame {
 
@@ -210,14 +209,13 @@ public class Dashboard extends JFrame {
 		JPanel paneSignout = new JPanel();
 		paneSignout.addMouseListener(new PanelButtonMouseAdapter(paneSignout){
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 				
 				if(JOptionPane.showConfirmDialog(null, "Sign Out" , "Confirmation", JOptionPane.YES_NO_OPTION) == 0) {
-	
-			Dashboard.this.dispose();
-			
-			
-			}
+					new Login().setVisible(true);
+					
+					Dashboard.this.dispose();
+				}
 			}
 		});
 		paneSignout.setBackground(new Color(218, 112, 214));

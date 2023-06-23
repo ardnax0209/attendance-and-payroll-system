@@ -19,8 +19,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -59,7 +61,14 @@ public class PanelPayroll extends JPanel {
 	private JTextField textOvertime;
 	private JTable table_1;
 	
+	DefaultTableModel tableModel = new DefaultTableModel();
+	
 	private String basicPay = "";
+	private String fName = "";
+	private String lName = "";
+	private double numHrs = 0.00;
+	private double otHours = 0.00;
+	private double totalLate = 0.00;
 	private int x = 0;
 
 	/**
@@ -102,9 +111,6 @@ public class PanelPayroll extends JPanel {
 		//Default value of dateChooser
 		Date date = new Date();
 		dateChooser.setDate(date);
-		
-		//Placeholder for table data
-		Object[][] data = {};
 		
 		JButton btnNewButton = new JButton("GENERATE");
 		btnNewButton.setBounds(434, 62, 108, 23);
@@ -179,16 +185,19 @@ public class PanelPayroll extends JPanel {
 				}
 				
 				String employeeNum = txtEmployeeNumber.getText();
+				totalLate = 0.00;
 				
 				int countOfUser = 0;
 				
 				try {
 					//check if user exists
-					pst = conn.prepareStatement("SELECT DAILYSALARY FROM employeeInfo WHERE EMPLOYEENUM = '"+employeeNum+"'");
+					pst = conn.prepareStatement("SELECT DAILYSALARY, FIRSTNAME, LASTNAME FROM employeeInfo WHERE EMPLOYEENUM = '"+employeeNum+"'");
 					rs = pst.executeQuery();
 
 					while (rs.next()) {
 						basicPay = rs.getString("DAILYSALARY");
+						fName = rs.getString("FIRSTNAME");
+						lName = rs.getString("LASTNAME");
 						countOfUser++;
 					}
 				} catch (SQLException e1) {
@@ -196,6 +205,8 @@ public class PanelPayroll extends JPanel {
 				}
 				
 				if (countOfUser > 0) {
+					tableModel.setRowCount(0);
+					
 					//populate basic pay
 					textField_1.setText(basicPay);
 					
@@ -213,13 +224,6 @@ public class PanelPayroll extends JPanel {
 					//get year only
 					SimpleDateFormat sdfYear = new SimpleDateFormat("yyy", java.util.Locale.ENGLISH);
 					String strYear = sdfYear.format(setDate);
-					
-					/*
-					DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-					LocalDateTime now = LocalDateTime.now(); 
-					String currDate = dtf.format(now);
-					dateChooser.setDateFormatString(currDate);
-					*/
 					
 					//Get dates for user
 					List<List> dates = new ArrayList<List>();
@@ -242,8 +246,9 @@ public class PanelPayroll extends JPanel {
 					String getDate = "";
 					double numHours = 0.00;
 					double getHrs = 0.00;
-					double otHrs = 0;
+					double otHrs = 0.00;
 					double deductHrs = 0.00;
+					Long howLate = (long) 0;
 					for (int i = 0; dateSize > i; i++) {
 						getDate = (String) dates.get(i).get(1);
 						String strGetDate[] = getDate.split("-");
@@ -265,7 +270,9 @@ public class PanelPayroll extends JPanel {
 								if (dayStr <= 15) {
 									//Get total hours using primary key
 									try {
-										pst = conn.prepareStatement("SELECT timeIn, timeOut FROM payrollInfo WHERE ID = '"+primKey+"'");
+										int tblRow = 0;
+										
+										pst = conn.prepareStatement("SELECT timeIn, timeOut, totalHours FROM payrollInfo WHERE ID = '"+primKey+"'");
 										rs = pst.executeQuery();
 										
 										while (rs.next()) {
@@ -289,7 +296,7 @@ public class PanelPayroll extends JPanel {
 												getHrs = 8.00;
 											} else if (correctTimeIn.getTime() - timeInFormatted.getTime() < 0) {
 												//late
-												double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
+												howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
 												if (howLate < 3600000) {
 													deductHrs = deductHrs + 40.00;
 													getHrs = 8.00;
@@ -309,23 +316,16 @@ public class PanelPayroll extends JPanel {
 											
 											if (timeOutFormatted.getTime() - correctTimeOut.getTime() < 0 && undertimeChckr == false) {
 												long hrsVal = timeOutFormatted.getTime() - correctTimeOut.getTime();
-												double convertedUnder = (( Math.abs(hrsVal) / (1000*60*60)) % 24);
+												double convertedUnder = Math.abs(hrsVal) / 3600000.0;
 												deductHrs = deductHrs + (convertedUnder * (Double.parseDouble(basicPay)/8));
 											}
 											
 											numHours = numHours + getHrs;
+											totalLate = totalLate + (howLate / 3600000.0);
 											
-											/*
-											//Populate array of objects for table
-											ArrayList<Object> newObj = new ArrayList<Object>(Arrays.asList(data));
-										    newObj.add(getDate);
-										    newObj.add(employeeIn);
-										    newObj.add(employeeOut);
-										    newObj.add(rs.getString("totalHours"));
-										    data[x][0] = newObj;
-										    x++;
-										    JOptionPane.showMessageDialog(null, "TEST2");
-										    */
+											//Populate table
+											tableModel.insertRow(tblRow, new Object[] { (String) dates.get(i).get(1), employeeIn, employeeOut, rs.getString("totalHours")});
+											tblRow++;
 										}
 									} catch (SQLException e1) {
 										e1.printStackTrace();
@@ -345,6 +345,8 @@ public class PanelPayroll extends JPanel {
 							} else {
 								if (dayStr > 15) {
 									try {
+										int tblRow = 0;
+										
 										pst = conn.prepareStatement("SELECT totalHours, timeIn, timeOut FROM payrollInfo WHERE ID = '"+primKey+"'");
 										rs = pst.executeQuery();
 										
@@ -369,7 +371,7 @@ public class PanelPayroll extends JPanel {
 												getHrs = 8.00;
 											} else if (correctTimeIn.getTime() - timeInFormatted.getTime() < 0) {
 												//late
-												double howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
+												howLate = timeInFormatted.getTime() - correctTimeIn.getTime();
 												if (howLate < 3600000) {
 													deductHrs = deductHrs + 40.00;
 													getHrs = 8.00;
@@ -389,44 +391,30 @@ public class PanelPayroll extends JPanel {
 											
 											if (timeOutFormatted.getTime() - correctTimeOut.getTime() < 0 && undertimeChckr == false) {
 												long hrsVal = timeOutFormatted.getTime() - correctTimeOut.getTime();
-												double convertedUnder = (( Math.abs(hrsVal) / (1000*60*60)) % 24);
+												double convertedUnder = Math.abs(hrsVal) / 3600000.0;
 												deductHrs = deductHrs + (convertedUnder * (Double.parseDouble(basicPay)/8));
 											}
 											
 											numHours = numHours + getHrs;
+											totalLate = totalLate + (howLate / 3600000.0);
 											
-											/*
-											//Populate array of objects for table
-											ArrayList<Object> newObj = new ArrayList<Object>(Arrays.asList(data));
-										    newObj.add(getDate);
-										    newObj.add(employeeIn);
-										    newObj.add(employeeOut);
-										    newObj.add(rs.getString("totalHours"));
-										    data[x][0] = newObj;
-										    x++;
-										    */
+											//Populate table
+											tableModel.insertRow(tblRow, new Object[] { (String) dates.get(i).get(1), employeeIn, employeeOut, rs.getString("totalHours")});
+											tblRow++;
 										}
 									} catch (SQLException e1) {
 										e1.printStackTrace();
-									} finally {
-										if (rs != null) {
-									        try {
-									        	rs.close();
-									        } catch (SQLException e1) { /* ignored */}
-									    }
-									    if (conn != null) {
-									        try {
-									            conn.close();
-									        } catch (SQLException e1) { /* ignored */}
-									    }
 									}
 								}
 							}
 						}
 					}
 					
+					tableModel.fireTableDataChanged();
+					
 					double perHour = Double.parseDouble(basicPay)/8;
 					
+					numHrs = numHours;
 					//Convert hours into days (8 hour/day)
 					double hrsToDay = numHours/8;
 					
@@ -447,12 +435,25 @@ public class PanelPayroll extends JPanel {
 					textField_3.setText(Double.toString(numSss)); //philhealth
 					textField_4.setText(Double.toString(numPagibig));
 					
+					otHours = otHrs;
 					double otCharge = otHrs * perHour;
 					BigDecimal bdOT = new BigDecimal(otCharge).setScale(2, RoundingMode.HALF_UP);
 					double finalOT = bdOT.doubleValue();
 					textOvertime.setText(Double.toString(finalOT));
 					
-					textField_6.setText(Double.toString(deductHrs));
+					BigDecimal bdDeduct = new BigDecimal(deductHrs).setScale(2, RoundingMode.HALF_UP);
+					textField_6.setText(Double.toString(bdDeduct.doubleValue()));
+					
+					if (rs != null) {
+				        try {
+				        	rs.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
+				    if (conn != null) {
+				        try {
+				            conn.close();
+				        } catch (SQLException e1) { /* ignored */}
+				    }
 				} else {
 					JOptionPane.showMessageDialog(null, "Employee number is invalid!");
 				}
@@ -515,6 +516,11 @@ public class PanelPayroll extends JPanel {
 			        } else {
 			            System.out.println("File not found.");
 			            
+						DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+						LocalDateTime now = LocalDateTime.now(); 
+						String currDate = dtf.format(now);
+						//dateChooser.setDateFormatString(currDate);
+			            
 			            //Instantiate the File class   
 						File f1 = new File(folderName);  
 						
@@ -524,7 +530,8 @@ public class PanelPayroll extends JPanel {
 							System.out.println("Folder is created successfully"); 
 
 							//generate a PDF at the specified location
-							PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream("Payslip\\Payslip.pdf")); //update name of pdf
+							String fileName = "Payslip\\" + fName + lName + "_" + currDate + ".pdf";
+							PdfWriter writer = PdfWriter.getInstance(doc, new FileOutputStream(fileName.replaceAll("\\s", "")));
 
 							//opens the PDF  
 							doc.open();
@@ -537,17 +544,36 @@ public class PanelPayroll extends JPanel {
 							//preface.setFont(headerFont);
 							preface.setAlignment(Element.ALIGN_CENTER);
 							preface.setSpacingAfter(50);
+							doc.add(preface);
 							
+							/*
 							Paragraph employeeNum = new Paragraph("Employee Number: " + txtEmployeeNumber.getText());
-							Paragraph employeeName = new Paragraph("Name: ");
-							Paragraph employeeDate = new Paragraph("Date Generated: ");
+							Paragraph employeeName = new Paragraph("Name: " + fName + " " + lName);
+							Paragraph employeeDate = new Paragraph("Date Generated: " + currDate);
 							employeeDate.setSpacingAfter(50);
 
 							//adds paragraph to the PDF file
-							doc.add(preface);
 							doc.add(employeeNum);
 							doc.add(employeeName);
 							doc.add(employeeDate);
+							*/
+							
+							PdfPTable tableHeader = new PdfPTable(2);
+							tableHeader.setWidthPercentage(100);
+							tableHeader.addCell(getCell("Employee Number: " + txtEmployeeNumber.getText(), PdfPCell.ALIGN_LEFT));
+							tableHeader.addCell(getCell("Total Days: " + Double.toString(Double.parseDouble(totalPay.getText()) / Double.parseDouble(textField_1.getText())), PdfPCell.ALIGN_RIGHT));
+							PdfPTable tableHeader2 = new PdfPTable(2);
+							tableHeader2.setWidthPercentage(100);
+							tableHeader2.addCell(getCell("Name: " + fName + " " + lName, PdfPCell.ALIGN_LEFT));
+							tableHeader2.addCell(getCell("Total Hours: " + Double.toString(numHrs + otHours), PdfPCell.ALIGN_RIGHT));
+							PdfPTable tableHeader3 = new PdfPTable(2);
+							tableHeader3.setWidthPercentage(100);
+							tableHeader3.addCell(getCell("Date Generated: " + currDate, PdfPCell.ALIGN_LEFT));
+							tableHeader3.addCell(getCell("Total Late Hours: " + Double.toString(totalLate), PdfPCell.ALIGN_RIGHT));
+							tableHeader3.setSpacingAfter(50);
+							doc.add(tableHeader);
+							doc.add(tableHeader2);
+							doc.add(tableHeader3);
 					        
 							PdfPTable table = new PdfPTable(2);
 							PdfPCell c1 = new PdfPCell(new Phrase(" "));
@@ -611,7 +637,7 @@ public class PanelPayroll extends JPanel {
 		JButton btnApply = new JButton("APPLY");
 		btnApply.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 				double grossPay = Double.parseDouble(totalPay.getText());
 				double overtime = Double.parseDouble(textOvertime.getText());
 				double sss = Double.parseDouble(textField_2.getText());
@@ -642,16 +668,24 @@ public class PanelPayroll extends JPanel {
 		lblOvertime.setBounds(10, 325, 155, 14);
 		add(lblOvertime);
 		
-		String[] columnNames = {"Date",
-                "Time in",
-                "Time out",
-                "Total Hours"};
+		tableModel.addColumn("Date");
+		tableModel.addColumn("Time in");
+		tableModel.addColumn("Time out");
+		tableModel.addColumn("Total Hours");
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(342, 180, 348, 219);
 		add(scrollPane);
 		
-		table_1 = new JTable(data, columnNames);
+		table_1 = new JTable(tableModel);
 		scrollPane.setViewportView(table_1);
+	}
+	
+	public PdfPCell getCell(String text, int alignment) {
+	    PdfPCell cell = new PdfPCell(new Phrase(text));
+	    cell.setPadding(0);
+	    cell.setHorizontalAlignment(alignment);
+	    cell.setBorder(PdfPCell.NO_BORDER);
+	    return cell;
 	}
 }

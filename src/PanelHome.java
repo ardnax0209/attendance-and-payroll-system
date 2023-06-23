@@ -12,7 +12,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.awt.Color;
 import javax.swing.border.LineBorder;
 
@@ -21,6 +23,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.*;
+
+import java.time.LocalDateTime;
 
 public class PanelHome extends JPanel {
 	
@@ -39,6 +44,8 @@ public class PanelHome extends JPanel {
 	Connection conn;
 	PreparedStatement pst;
 	ResultSet rs;
+	
+	DefaultTableModel tableModel = new DefaultTableModel();
 	
 	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	LocalDateTime now = LocalDateTime.now(); 
@@ -178,19 +185,16 @@ public class PanelHome extends JPanel {
 		lblNewLabel_1.setBounds(5, 4, 17, 17);
 		panel_4.add(lblNewLabel_1);
 		
-		//Placeholder for table data
-		Object[][] data = {};
-		
-		String[] columnNames = {"Rank",
-                "Employee ID",
-                "Name",
-                "Total Days"};
+		tableModel.addColumn("Rank");
+		tableModel.addColumn("Employee ID");
+		tableModel.addColumn("Name");
+		tableModel.addColumn("Total Days");
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(69, 258, 563, 214);
 		add(scrollPane);
 		
-		table = new JTable(data, columnNames);
+		table = new JTable(tableModel);
 		scrollPane.setViewportView(table);
 		setVisible(true);
 
@@ -257,6 +261,27 @@ public class PanelHome extends JPanel {
 		catch (SQLException e)
 		{
 			e.addSuppressed(e);
+		}
+		
+		lblAbsenttod.setText(String.valueOf(numberEmp - numberAbs));
+		lblOntime.setText(String.valueOf(onTime));
+		lblLatetod.setText(String.valueOf(numberLate));
+		
+		//Update data in table
+		List<List> dates = new ArrayList<List>();
+		try {
+			pst = conn.prepareStatement("SELECT ID, employeeNum, dateIn FROM payrollInfo");
+			rs = pst.executeQuery();
+			
+			while (rs.next()) {
+				List list1=new ArrayList();
+				list1.add(rs.getString("ID"));
+				list1.add(rs.getString("employeeNum"));
+				list1.add(rs.getString("dateIn"));
+				dates.add(list1);
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
 		} finally {
 			if (rs != null) {
 		        try {
@@ -270,9 +295,29 @@ public class PanelHome extends JPanel {
 		    }
 		}
 		
-		lblAbsenttod.setText(String.valueOf(numberEmp - numberAbs));
-		lblOntime.setText(String.valueOf(onTime));
-		lblLatetod.setText(String.valueOf(numberLate));
+		LocalDateTime now = LocalDateTime.now(); 
+		
+		//get month only
+		DateTimeFormatter dtfMonth = DateTimeFormatter.ofPattern("MM");
+		String monthToday = dtfMonth.format(now);
+		
+		//get year only
+		DateTimeFormatter dtfYear = DateTimeFormatter.ofPattern("yyyy");
+		String yearToday = dtfYear.format(now);
+		
+		int dateSize = dates.size();
+		
+		for (int i = 0; dateSize > i; i++) {
+			String getDate = (String) dates.get(i).get(2);
+			String strGetDate[] = getDate.split("-");
+			int yearStr = Integer.parseInt(strGetDate[0]);
+			int monthStr = Integer.parseInt(strGetDate[1]);
+			
+			if (monthStr == Integer.parseInt(monthToday) && yearStr == Integer.parseInt(yearToday)) {
+				String list2[] = new String[3];
+				list2[0] = (String) dates.get(i).get(0); //Add to rank - update
+			}
+		}
 	}
 	
 	public void updateDshbrdAuto () {
