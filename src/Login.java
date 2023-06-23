@@ -303,7 +303,7 @@ public class Login extends JFrame {
 						        } catch (SQLException e1) { /* ignored */}
 						    }
 						    
-						    new Dashboard().setVisible(true);
+						    new Dashboard(user).setVisible(true);
 							Login.this.dispose();
 						}
 					}

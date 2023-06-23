@@ -31,6 +31,8 @@ public class Dashboard extends JFrame {
 	private PanelPayroll panelPayroll;
 	private PanelSettings panelSettings;
 	private PanelSignout panelSignout;
+	
+	private String uName = "";
 
 	/**
 	 * Launch the application.
@@ -40,7 +42,7 @@ public class Dashboard extends JFrame {
 			public void run() {
 				try {
 					//Create new object for dashboard
-					Dashboard frame = new Dashboard();
+					Dashboard frame = new Dashboard("");
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -52,9 +54,11 @@ public class Dashboard extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public Dashboard() {
+	public Dashboard(String username) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1023, 583);
+		
+		uName = username;
 		
 		panelHome = new PanelHome();
 		panelHome.setBounds(-12, -11, 712, 546);
@@ -66,7 +70,7 @@ public class Dashboard extends JFrame {
 		
 		panelPayroll = new PanelPayroll();
 		
-		panelSettings = new PanelSettings();
+		panelSettings = new PanelSettings(uName);
 	
 		panelSignout = new PanelSignout();
 		
@@ -86,8 +90,8 @@ public class Dashboard extends JFrame {
 		JPanel paneHome = new JPanel();
 		paneHome.addMouseListener(new PanelButtonMouseAdapter(paneHome) {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-			menuClicked(panelHome);
+			public void mouseReleased(MouseEvent e) {
+				menuClicked(panelHome);
 			
 			}
 		});
@@ -110,7 +114,7 @@ public class Dashboard extends JFrame {
 		JPanel paneDailylogs = new JPanel();
 		paneDailylogs.addMouseListener(new PanelButtonMouseAdapter(paneDailylogs){
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 			menuClicked(panelDailylogs);
 			
 			}
@@ -134,7 +138,7 @@ public class Dashboard extends JFrame {
 		JPanel paneEmployeeinfo = new JPanel();
 		paneEmployeeinfo.addMouseListener(new PanelButtonMouseAdapter(paneEmployeeinfo){
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 			menuClicked(panelEmployeeinfo);
 			
 			}
@@ -159,7 +163,7 @@ public class Dashboard extends JFrame {
 		JPanel panePayroll = new JPanel();
 		panePayroll.addMouseListener(new PanelButtonMouseAdapter(panePayroll){
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 			menuClicked(panelPayroll);
 			
 			}
@@ -178,13 +182,13 @@ public class Dashboard extends JFrame {
 		
 		JLabel imgPayroll = new JLabel("New label");
 		imgPayroll.setIcon(new ImageIcon(img_Payroll));
-		imgPayroll.setBounds(26, 10, 40, 31);
+		imgPayroll.setBounds(26, 5, 34, 31);
 		panePayroll.add(imgPayroll);
 		
 		JPanel paneSettings = new JPanel();
 		paneSettings.addMouseListener(new PanelButtonMouseAdapter(paneSettings){
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 			menuClicked(panelSettings);
 			
 			}
@@ -203,7 +207,7 @@ public class Dashboard extends JFrame {
 		
 		JLabel imgSettings = new JLabel("New label");
 		imgSettings.setIcon(new ImageIcon(img_Settings));
-		imgSettings.setBounds(28, 4, 49, 42);
+		imgSettings.setBounds(26, 4, 34, 42);
 		paneSettings.add(imgSettings);
 		
 		JPanel paneSignout = new JPanel();

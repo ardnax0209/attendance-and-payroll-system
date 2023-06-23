@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.awt.Color;
+import java.awt.Cursor;
+
 import javax.swing.border.LineBorder;
 
 import javax.swing.SwingConstants;
@@ -29,10 +31,10 @@ import java.time.LocalDateTime;
 
 public class PanelHome extends JPanel {
 	
-	private Image img_employees = new ImageIcon(Login.class.getResource("images/crowd.png")).getImage().getScaledInstance(45,45, Image.SCALE_SMOOTH);
-	private Image img_percentage = new ImageIcon(Login.class.getResource("images/data.png")).getImage().getScaledInstance(45,45, Image.SCALE_SMOOTH);
-	private Image img_ontime = new ImageIcon(Login.class.getResource("images/clock.png")).getImage().getScaledInstance(45,45, Image.SCALE_SMOOTH);
-	private Image img_late = new ImageIcon(Login.class.getResource("images/warning.png")).getImage().getScaledInstance(45,45, Image.SCALE_SMOOTH);
+	private Image img_employees = new ImageIcon(Login.class.getResource("images/crowd.png")).getImage().getScaledInstance(70,70, Image.SCALE_SMOOTH);
+	private Image img_percentage = new ImageIcon(Login.class.getResource("images/data.png")).getImage().getScaledInstance(70,70, Image.SCALE_SMOOTH);
+	private Image img_ontime = new ImageIcon(Login.class.getResource("images/clock.png")).getImage().getScaledInstance(70,70, Image.SCALE_SMOOTH);
+	private Image img_late = new ImageIcon(Login.class.getResource("images/warning.png")).getImage().getScaledInstance(70,70, Image.SCALE_SMOOTH);
 	private Image img_user = new ImageIcon(Login.class.getResource("images/woman.png")).getImage().getScaledInstance(30,30, Image.SCALE_SMOOTH);
 	private Image img_refresh = new ImageIcon(Login.class.getResource("images/refresh.png")).getImage().getScaledInstance(17,17, Image.SCALE_SMOOTH);
 	
@@ -50,7 +52,6 @@ public class PanelHome extends JPanel {
 	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	LocalDateTime now = LocalDateTime.now(); 
 	String dateToday = dtf.format(now);
-	private JTable table;
 
 	/**
 	 * Create the panel.
@@ -63,98 +64,98 @@ public class PanelHome extends JPanel {
 		JPanel panel = new JPanel();
 		panel.setBorder(new LineBorder(new Color(0, 0, 0), 3, true));
 		panel.setBackground(new Color(255, 255, 255));
-		panel.setBounds(11, 86, 169, 92);
+		panel.setBounds(106, 142, 230, 150);
 		add(panel);
 		panel.setLayout(null);
 		
 		JLabel lblttlemployee = new JLabel("TOTAL EMPLOYEE");
-		lblttlemployee.setFont(new Font("Tahoma", Font.BOLD, 13));
-		lblttlemployee.setBounds(10, 65, 149, 20);
+		lblttlemployee.setFont(new Font("Tahoma", Font.BOLD, 12));
+		lblttlemployee.setBounds(10, 119, 130, 20);
 		panel.add(lblttlemployee);
 		
 		JLabel lblTotalEmployee = new JLabel("");
 		lblTotalEmployee.setIcon(new ImageIcon (img_employees));
-		lblTotalEmployee.setBounds(110, 11, 45, 45);
+		lblTotalEmployee.setBounds(140, 30, 70, 70);
 		panel.add(lblTotalEmployee);
 		
 		lblTotalemp = new JLabel("0");
-		lblTotalemp.setFont(new Font("Tahoma", Font.BOLD, 18));
+		lblTotalemp.setFont(new Font("Tahoma", Font.BOLD, 30));
 		lblTotalemp.setHorizontalAlignment(SwingConstants.CENTER);
-		lblTotalemp.setBounds(23, 11, 55, 43);
+		lblTotalemp.setBounds(40, 50, 55, 45);
 		panel.add(lblTotalemp);
 		
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0), 3, true));
 		panel_1.setBackground(new Color(255, 255, 255));
-		panel_1.setBounds(181, 86, 169, 92);
+		panel_1.setBounds(106, 317, 230, 150);
 		add(panel_1);
 		panel_1.setLayout(null);
 		
 		JLabel lblAbsent = new JLabel("ABSENT TODAY");
-		lblAbsent.setBounds(10, 65, 134, 16);
-		lblAbsent.setFont(new Font("Tahoma", Font.BOLD, 13));
+		lblAbsent.setBounds(10, 119, 130, 20);
+		lblAbsent.setFont(new Font("Tahoma", Font.BOLD, 12));
 		panel_1.add(lblAbsent);
 		
 		JLabel lblOnTIME = new JLabel("");
 		lblOnTIME.setIcon(new ImageIcon(img_percentage));
-		lblOnTIME.setBounds(110, 11, 45, 45);
+		lblOnTIME.setBounds(140, 30, 70, 70);
 		panel_1.add(lblOnTIME);
 		
 		lblAbsenttod = new JLabel("0");
 		lblAbsenttod.setHorizontalAlignment(SwingConstants.CENTER);
-		lblAbsenttod.setFont(new Font("Tahoma", Font.BOLD, 18));
-		lblAbsenttod.setBounds(25, 11, 55, 43);
+		lblAbsenttod.setFont(new Font("Tahoma", Font.BOLD, 30));
+		lblAbsenttod.setBounds(40, 50, 55, 45);
 		panel_1.add(lblAbsenttod);
 		
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new LineBorder(new Color(0, 0, 0), 3, true));
 		panel_2.setBackground(new Color(255, 255, 255));
-		panel_2.setBounds(351, 86, 169, 92);
+		panel_2.setBounds(372, 142, 230, 150);
 		add(panel_2);
 		panel_2.setLayout(null);
 		
 		JLabel lblOnTime = new JLabel("ON TIME TODAY");
-		lblOnTime.setBounds(10, 65, 99, 16);
-		lblOnTime.setFont(new Font("Tahoma", Font.BOLD, 13));
+		lblOnTime.setBounds(10, 119, 130, 20);
+		lblOnTime.setFont(new Font("Tahoma", Font.BOLD, 12));
 		panel_2.add(lblOnTime);
 		
 		JLabel lblOnTODAY = new JLabel("");
 		lblOnTODAY.setIcon(new ImageIcon(img_ontime));
-		lblOnTODAY.setBounds(110, 11, 45, 45);
+		lblOnTODAY.setBounds(140, 30, 70, 70);
 		panel_2.add(lblOnTODAY);
 		
 		lblOntime = new JLabel("0");
 		lblOntime.setHorizontalAlignment(SwingConstants.CENTER);
-		lblOntime.setFont(new Font("Tahoma", Font.BOLD, 18));
-		lblOntime.setBounds(27, 11, 55, 43);
+		lblOntime.setFont(new Font("Tahoma", Font.BOLD, 30));
+		lblOntime.setBounds(40, 50, 55, 45);
 		panel_2.add(lblOntime);
 		
 		JPanel panel_3 = new JPanel();
 		panel_3.setBorder(new LineBorder(new Color(0, 0, 0), 3, true));
 		panel_3.setBackground(new Color(255, 255, 255));
-		panel_3.setBounds(521, 86, 169, 92);
+		panel_3.setBounds(372, 317, 230, 150);
 		add(panel_3);
 		panel_3.setLayout(null);
 		
 		JLabel lblLateToday = new JLabel("LATE TODAY");
-		lblLateToday.setBounds(10, 65, 109, 16);
-		lblLateToday.setFont(new Font("Tahoma", Font.BOLD, 13));
+		lblLateToday.setBounds(10, 119, 130, 20);
+		lblLateToday.setFont(new Font("Tahoma", Font.BOLD, 12));
 		panel_3.add(lblLateToday);
 		
 		JLabel lblLate = new JLabel("");
 		lblLate.setIcon(new ImageIcon (img_late));
-		lblLate.setBounds(110, 11, 45, 45);
+		lblLate.setBounds(140, 30, 70, 70);
 		panel_3.add(lblLate);
 		
 		lblLatetod = new JLabel("0");
 		lblLatetod.setHorizontalAlignment(SwingConstants.CENTER);
-		lblLatetod.setFont(new Font("Tahoma", Font.BOLD, 18));
-		lblLatetod.setBounds(25, 11, 55, 43);
+		lblLatetod.setFont(new Font("Tahoma", Font.BOLD, 30));
+		lblLatetod.setBounds(40, 50, 55, 45);
 		panel_3.add(lblLatetod);
 		
-		JLabel lblMonthlyattendance = new JLabel("MONTHLY ATTENDANCE REPORT");
+		JLabel lblMonthlyattendance = new JLabel("DAILY  ATTENDANCE REPORT");
 		lblMonthlyattendance.setFont(new Font("Tahoma", Font.BOLD, 16));
-		lblMonthlyattendance.setBounds(21, 200, 329, 14);
+		lblMonthlyattendance.setBounds(25, 97, 329, 14);
 		add(lblMonthlyattendance);
 		
 		JLabel lblUser = new JLabel("");
@@ -170,7 +171,7 @@ public class PanelHome extends JPanel {
 		JPanel panel_4 = new JPanel();
 		panel_4.setBorder(null);
 		panel_4.setBackground(new Color(255, 182, 193));
-		panel_4.setBounds(25, 48, 35, 25);
+		panel_4.setBounds(25, 61, 35, 25);
 		add(panel_4);
 		panel_4.setLayout(null);
 		
@@ -183,19 +184,13 @@ public class PanelHome extends JPanel {
 		});
 		lblNewLabel_1.setIcon(new ImageIcon (img_refresh));
 		lblNewLabel_1.setBounds(5, 4, 17, 17);
+		lblNewLabel_1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		panel_4.add(lblNewLabel_1);
 		
 		tableModel.addColumn("Rank");
 		tableModel.addColumn("Employee ID");
 		tableModel.addColumn("Name");
 		tableModel.addColumn("Total Days");
-		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(69, 258, 563, 214);
-		add(scrollPane);
-		
-		table = new JTable(tableModel);
-		scrollPane.setViewportView(table);
 		setVisible(true);
 
 		updateDshbrdAuto();
