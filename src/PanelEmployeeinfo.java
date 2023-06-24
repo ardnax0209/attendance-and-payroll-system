@@ -24,6 +24,7 @@ import java.awt.event.FocusEvent;
 import javax.swing.JTable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import javax.swing.JComboBox;
 
 public class PanelEmployeeinfo extends JPanel {
 	
@@ -377,7 +378,7 @@ public class PanelEmployeeinfo extends JPanel {
 		panelNationality.add(dateOfBirth);
 		
 		JPanel panelEmployeeNumber = new JPanel();
-		panelEmployeeNumber.setBounds(396, 83, 284, 25);
+		panelEmployeeNumber.setBounds(480, 83, 200, 25);
 		panelEmployeeNumber.setBackground(new Color(255, 255, 255));
 		panelEmployeeNumber.setBorder(new LineBorder(new Color(0, 0, 0)));
 		add(panelEmployeeNumber);
@@ -437,25 +438,50 @@ public class PanelEmployeeinfo extends JPanel {
 					middleName = "";
 				}
 				
-				//Initialize SQL statement
-				Statement statement = null;
-				//Create SQL statement
-				//String query = "INSERT INTO employeeInfo VALUES ('"+employeeNum+"','"+lastName+"','"+firstName+"','"+middleName+"','"+empAddress+"','"+contactNum+"','"+empAge+"','"+empGender+"','"+empEmail+"','"+civilStatus+"','"+empNationality+"','"+dateHired+"')";
-				String query = "INSERT INTO employeeInfo ('employeeNum', 'LASTNAME', 'FIRSTNAME', 'MIDDLENAME', 'ADDRESS', 'CONTACTNUM', 'AGE', 'GENDER', 'EMAIL', 'CIVILSTATUS', 'BIRTHDAY') VALUES ('"+employeeNum+"','"+lastName+"','"+firstName+"','"+middleName+"','"+empAddress+"','"+contactNum+"','"+empAge+"','"+empGender+"','"+empEmail+"','"+civilStatus+"','"+empBirthday+"')";
-				
+				//Check if name exists
+				int nameCntr = 0;
 				try {
-					statement = conn.createStatement();
-					statement.execute(query);
-					JOptionPane.showMessageDialog(null, "Employee created!");
-				} catch (SQLException e2) {
-					JOptionPane.showMessageDialog(null, e2.toString());
-				} finally {
-				    if (conn != null) {
-				        try {
-				            conn.close();
-				        } catch (SQLException e1) { /* ignored */}
-				    }
+					pst = conn.prepareStatement("SELECT FIRSTNAME, MIDDLENAME, LASTNAME from employeeInfo WHERE status = 'ACTIVE'");
+					rs = pst.executeQuery();
+					
+					while (rs.next()) {
+						if (firstName.toLowerCase().equals(rs.getString("FIRSTNAME").toLowerCase()) == true && middleName.toLowerCase().equals(rs.getString("MIDDLENAME").toLowerCase()) == true && lastName.toLowerCase().equals(rs.getString("LASTNAME").toLowerCase()) == true) {
+							nameCntr++;
+						}
+					}
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
+				
+				if (nameCntr == 0) {
+					//Initialize SQL statement
+					Statement statement = null;
+					//Create SQL statement
+					//String query = "INSERT INTO employeeInfo VALUES ('"+employeeNum+"','"+lastName+"','"+firstName+"','"+middleName+"','"+empAddress+"','"+contactNum+"','"+empAge+"','"+empGender+"','"+empEmail+"','"+civilStatus+"','"+empNationality+"','"+dateHired+"')";
+					String query = "INSERT INTO employeeInfo ('employeeNum', 'LASTNAME', 'FIRSTNAME', 'MIDDLENAME', 'ADDRESS', 'CONTACTNUM', 'AGE', 'GENDER', 'EMAIL', 'CIVILSTATUS', 'BIRTHDAY') VALUES ('"+employeeNum+"','"+lastName+"','"+firstName+"','"+middleName+"','"+empAddress+"','"+contactNum+"','"+empAge+"','"+empGender+"','"+empEmail+"','"+civilStatus+"','"+empBirthday+"')";
+					
+					try {
+						statement = conn.createStatement();
+						statement.execute(query);
+						JOptionPane.showMessageDialog(null, "Employee created!");
+					} catch (SQLException e2) {
+						JOptionPane.showMessageDialog(null, e2.toString());
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Employee already exists.");
+				}
+				
+				if (rs != null) {
+			        try {
+			        	rs.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
+			    if (conn != null) {
+			        try {
+			            conn.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
 				
 				//Revert fields into default
 				txtLastName.setText("Last Name");
@@ -487,6 +513,7 @@ public class PanelEmployeeinfo extends JPanel {
 					e1.printStackTrace();
 				}
 				
+				Statement statement = null;
 				int row1 = employeeTable.getSelectedRow();
 				
 				String employeeNum= employeeTable.getValueAt(row1,0).toString();
@@ -501,29 +528,47 @@ public class PanelEmployeeinfo extends JPanel {
 				String civilStatus = employeeTable.getValueAt(row1,9).toString();
 				String empBirthday = employeeTable.getValueAt(row1,10).toString();
 				
-				
-				//Initialize SQL statement
-				Statement statement = null;
-				String query = "UPDATE employeeInfo SET lastName= '"+lastName+"',firstName='"+firstName+"',middleName='"+middleName+"',ADDRESS='"+empAddress+"',contactNum='"+contactNum+"',AGE='"+empAge+"',GENDER='"+empGender+"',EMAIL='"+empEmail+"',CIVILSTATUS='"+civilStatus+"',BIRTHDAY='"+empBirthday+"' WHERE employeeNum='"+employeeNum+"'";
-				
+				//Check if name exists
+				int nameCntr = 0;
 				try {
-					statement = conn.createStatement();
-					statement.execute(query);
-					JOptionPane.showMessageDialog(null, "Employee Updated!");
-				} catch (SQLException e3) {
-					JOptionPane.showMessageDialog(null, e3.toString());
-				} finally {
-					if (rs != null) {
-				        try {
-				        	rs.close();
-				        } catch (SQLException e1) { /* ignored */}
-				    }
-				    if (conn != null) {
-				        try {
-				            conn.close();
-				        } catch (SQLException e1) { /* ignored */}
-				    }
+					pst = conn.prepareStatement("SELECT FIRSTNAME, MIDDLENAME, LASTNAME from employeeInfo WHERE status = 'ACTIVE'");
+					rs = pst.executeQuery();
+					
+					while (rs.next()) {
+						if (firstName.toLowerCase().equals(rs.getString("FIRSTNAME").toLowerCase()) == true && middleName.toLowerCase().equals(rs.getString("MIDDLENAME").toLowerCase()) == true && lastName.toLowerCase().equals(rs.getString("LASTNAME").toLowerCase()) == true) {
+							nameCntr++;
+						}
+					}
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
+				
+				if (nameCntr == 0) {
+					//Initialize SQL statement
+					String query = "UPDATE employeeInfo SET lastName= '"+lastName+"',firstName='"+firstName+"',middleName='"+middleName+"',ADDRESS='"+empAddress+"',contactNum='"+contactNum+"',AGE='"+empAge+"',GENDER='"+empGender+"',EMAIL='"+empEmail+"',CIVILSTATUS='"+civilStatus+"',BIRTHDAY='"+empBirthday+"' WHERE employeeNum='"+employeeNum+"'";
+					
+					try {
+						statement = conn.createStatement();
+						statement.execute(query);
+						JOptionPane.showMessageDialog(null, "Employee Updated!");
+					} catch (SQLException e3) {
+						JOptionPane.showMessageDialog(null, e3.toString());
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Employee already exists.");
+				}
+				
+				if (rs != null) {
+			        try {
+			        	rs.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
+			    if (conn != null) {
+			        try {
+			            conn.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
 				
 				table_load();
 				
@@ -605,6 +650,15 @@ public class PanelEmployeeinfo extends JPanel {
 		lblSearch.setBounds(32, 62, 46, 14);
 		add(lblSearch);
 		
+		JComboBox<String> comboBox = new JComboBox<String>();
+		comboBox.setBounds(236, 55, 137, 22);
+		add(comboBox);
+
+		// add items to the combo box
+		comboBox.addItem("Employee Number");
+		comboBox.addItem("First Name");
+		comboBox.addItem("Last Name");
+		
 		txtSearchEID = new JTextField();
 		txtSearchEID.addKeyListener(new KeyAdapter() {
 			@Override
@@ -618,27 +672,52 @@ public class PanelEmployeeinfo extends JPanel {
 				
 				String searchField = "%" + txtSearchEID.getText() + "%";
 				
-				//populates table
-				try {
-					pst = conn.prepareStatement("SELECT * FROM employeeInfo WHERE status = 'ACTIVE' AND EMPLOYEENUM LIKE '"+searchField+"'");
-					rs = pst.executeQuery();
-					employeeTable.setModel (DbUtils.resultSetToTableModel(rs));
+				//Condition
+				if (comboBox.getSelectedItem().toString() == "Employee Number") {
+					//populates table
+					try {
+						pst = conn.prepareStatement("SELECT * FROM employeeInfo WHERE status = 'ACTIVE' AND EMPLOYEENUM LIKE '"+searchField+"'");
+						rs = pst.executeQuery();
+						employeeTable.setModel (DbUtils.resultSetToTableModel(rs));
+					}
+					catch (SQLException e2)
+					{
+						e2.addSuppressed(e2);
+					}
+				} else if (comboBox.getSelectedItem().toString() == "First Name") {
+					//populates table
+					try {
+						pst = conn.prepareStatement("SELECT * FROM employeeInfo WHERE status = 'ACTIVE' AND FIRSTNAME LIKE '"+searchField+"'");
+						rs = pst.executeQuery();
+						employeeTable.setModel (DbUtils.resultSetToTableModel(rs));
+					}
+					catch (SQLException e2)
+					{
+						e2.addSuppressed(e2);
+					}
+				} else {
+					//populates table
+					try {
+						pst = conn.prepareStatement("SELECT * FROM employeeInfo WHERE status = 'ACTIVE' AND LASTNAME LIKE '"+searchField+"'");
+						rs = pst.executeQuery();
+						employeeTable.setModel (DbUtils.resultSetToTableModel(rs));
+					}
+					catch (SQLException e2)
+					{
+						e2.addSuppressed(e2);
+					}
 				}
-				catch (SQLException e2)
-				{
-					e2.addSuppressed(e2);
-				} finally {
-					if (rs != null) {
-				        try {
-				        	rs.close();
-				        } catch (SQLException e1) { /* ignored */}
-				    }
-				    if (conn != null) {
-				        try {
-				            conn.close();
-				        } catch (SQLException e1) { /* ignored */}
-				    }
-				}
+				
+				if (rs != null) {
+			        try {
+			        	rs.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
+			    if (conn != null) {
+			        try {
+			            conn.close();
+			        } catch (SQLException e1) { /* ignored */}
+			    }
 			}
 			
 		});

@@ -114,6 +114,10 @@ JComboBox<String> comboBox_1 = new JComboBox<String>();
 						} catch (SQLException e3) {
 							JOptionPane.showMessageDialog(null, e3.toString());
 						}
+						
+						if (txtBox2.isBlank() == true) {
+							JOptionPane.showMessageDialog(null, "Updated successfully.");
+						}
 					} else if (comboBox.getSelectedItem().toString() == "USERNAME" && txtBox1.isBlank() == false) {
 						//Initialize SQL statement
 						statement = null;
@@ -124,6 +128,10 @@ JComboBox<String> comboBox_1 = new JComboBox<String>();
 							statement.execute(query);
 						} catch (SQLException e3) {
 							JOptionPane.showMessageDialog(null, e3.toString());
+						}
+						
+						if (txtBox2.isBlank() == true) {
+							JOptionPane.showMessageDialog(null, "Updated successfully.");
 						}
 					} else if (comboBox.getSelectedItem().toString() == "SECURITY QUESTION1" && txtBox1.isBlank() == false) {
 						//Initialize SQL statement
@@ -136,6 +144,10 @@ JComboBox<String> comboBox_1 = new JComboBox<String>();
 						} catch (SQLException e3) {
 							JOptionPane.showMessageDialog(null, e3.toString());
 						}
+						
+						if (txtBox2.isBlank() == true) {
+							JOptionPane.showMessageDialog(null, "Updated successfully.");
+						}
 					} else if (comboBox.getSelectedItem().toString() == "SECURITY QUESTION2" && txtBox1.isBlank() == false) {
 						//Initialize SQL statement
 						statement = null;
@@ -147,8 +159,10 @@ JComboBox<String> comboBox_1 = new JComboBox<String>();
 						} catch (SQLException e3) {
 							JOptionPane.showMessageDialog(null, e3.toString());
 						}
-					} else {
-						JOptionPane.showMessageDialog(null, "Please fill out what you want changed.");
+						
+						if (txtBox2.isBlank() == true) {
+							JOptionPane.showMessageDialog(null, "Updated successfully.");
+						}
 					}
 					
 					//Second combo
@@ -197,6 +211,10 @@ JComboBox<String> comboBox_1 = new JComboBox<String>();
 						} catch (SQLException e3) {
 							JOptionPane.showMessageDialog(null, e3.toString());
 						}
+					}
+					
+					if (txtBox1.isBlank() == true && txtBox2.isBlank() == true) {
+						JOptionPane.showMessageDialog(null, "Please fill out required fields.");
 					}
 					
 					if (conn != null) {

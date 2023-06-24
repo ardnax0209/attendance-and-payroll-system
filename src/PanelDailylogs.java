@@ -245,15 +245,22 @@ public class PanelDailylogs extends JPanel {
 						
 						//Format time in
 						Date timeInFormatted = null;
+						Date correctTimeIn = null;
 						try {
 							timeInFormatted = sdf.parse(timeIn);
+							correctTimeIn = sdf.parse("08:00:00");
 						} catch (ParseException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 						
 						//Get difference between time out and time in in milliseconds
-						double totHours = timeTodayFormatted.getTime() - timeInFormatted.getTime();
+						double totHours = 0.00;
+						if (correctTimeIn.getTime() - timeInFormatted.getTime() >= 0) {
+							totHours = timeTodayFormatted.getTime() - correctTimeIn.getTime();
+						} else {
+							totHours = timeTodayFormatted.getTime() - timeInFormatted.getTime();
+						}
 						
 						//Convert milliseconds to hours
 						double hours = ((totHours / (1000*60*60)) % 24);
